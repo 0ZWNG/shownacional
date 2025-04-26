@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Cobrinha</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        canvas {
+            border: 2px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const scale = 20;  // Tamanho de cada célula do jogo
+        const rows = canvas.height / scale;
+        const columns = canvas.width / scale;
+
+        let snake;
+        let food;
+        let score;
+
+        // Inicia o jogo
+        function init() {
+            snake = [{ x: 9 * scale, y: 9 * scale }];
+            food = generateFood();
+            score = 0;
+            clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, 100);  // Executa a função a cada 100ms
+        }
+
+        // Função que gera um alimento em uma posição aleatória
+        function generateFood() {
+            const x = Math.floor(Math.random() * rows) * scale;
+            const y = Math.floor(Math.random() * columns) * scale;
+            return { x, y };
+        }
+
+        // Função que desenha a cobrinha
+        function drawSnake() {
+            snake.forEach((segment, index) => {
+                ctx.fillStyle = index === 0 ? "green" : "darkgreen";
+                ctx.fillRect(segment.x, segment.y, scale, scale);
+            });
+        }
+
+        // Função que desenha o alimento
+        function drawFood() {
+            ctx.fillStyle = "red";
+            ctx.fillRect(food.x, food.y, scale, scale);
+        }
+
+        // Função que desenha o placar
+        function drawScore() {
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+            ctx.fillText("Pontuação: " + score, 10, 20);
+        }
+
+        // Função que move a cobrinha
+        function moveSnake() {
+            const head = { ...snake[0] };
+
+            if (direction === "up") head.y -= scale;
+            if (direction === "down") head.y += scale;
+            if (direction === "left") head.x -= scale;
+            if (direction === "right") head.x += scale;
+
+            snake.unshift(head);
+            if (head.x === food.x && head.y === food.y) {
+                food = generateFood();
+                score++;
+            } else {
+                snake.pop();
+            }
+        }
+
+        // Função que verifica se a cobrinha bateu nas paredes ou em si mesma
+        function checkCollision() {
+            const head = snake[0];
+
+            // Colisão com as paredes
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+                return true;
+            }
+
+            // Colisão com o próprio corpo
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Função principal do jogo
+        function gameLoop() {
+            if (checkCollision()) {
+                alert("Game Over! A pontuação final foi " + score);
+                init();
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Limpa o canvas
+
+            drawFood();
+            drawSnake();
+            drawScore();
+            moveSnake();
+        }
+
+        // Controle da cobrinha
+        let direction = "right";
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowUp" && direction !== "down") {
+                direction = "up";
+            }
+            if (e.key === "ArrowDown" && direction !== "up") {
+                direction = "down";
+            }
+            if (e.key === "ArrowLeft" && direction !== "right") {
+                direction = "left";
+            }
+            if (e.key === "ArrowRight" && direction !== "left") {
+                direction = "right";
+            }
+        });
+
+        // Começa o jogo
+        let gameInterval;
+        init();
+    </script>
+</body>
+</html>
